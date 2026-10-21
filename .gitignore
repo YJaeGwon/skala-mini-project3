@@ -1,0 +1,11 @@
+.env
+.venv/
+session.db
+checkpoints.db*
+data/vectordb/
+__pycache__/
+.pytest_cache/
+*.log
+eval/_before_snapshot/
+eval/results/_*
+.DS_Store

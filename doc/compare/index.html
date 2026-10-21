@@ -1,0 +1,347 @@
+<title>Base 에이전트 개선 비교</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: 한 줄 요약 → 항목별(무엇이 바뀌었나 · Before/After 실제 화면 · 수치 · 코드 위치)을 위에서 아래로 */
+:root {
+  --bg: #F5F6F8; --surface: #FFFFFF; --fg: #17202E; --muted: #556072; --line: #DDE1E8;
+  --before: #A44A0C; --before-soft: #FCEBDD; --after: #1F4FD1; --after-soft: #E3EBFD;
+  --shot: #1E1E2E; --code-bg: #EEF0F4;
+  --display: 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  --body: 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #11151C; --surface: #1A2029; --fg: #E6EAF0; --muted: #9AA5B5; --line: #2C3441;
+  --before: #F2A066; --before-soft: #3A2516; --after: #8DAEFF; --after-soft: #1A2746;
+  --shot: #0B0D12; --code-bg: #222935; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #11151C; --surface: #1A2029; --fg: #E6EAF0; --muted: #9AA5B5; --line: #2C3441;
+  --before: #F2A066; --before-soft: #3A2516; --after: #8DAEFF; --after-soft: #1A2746;
+  --shot: #0B0D12; --code-bg: #222935; color-scheme: dark }
+
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 16px; line-height: 1.65;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1120px; margin: 0 auto; padding-block: 48px 80px; display: flex; flex-direction: column; gap: 56px }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0 }
+p { margin: 0 }
+code, pre { font-family: var(--mono) }
+
+header { display: flex; flex-direction: column; gap: 20px }
+.eyebrow { font-size: 13px; font-weight: 700; letter-spacing: .08em; color: var(--muted) }
+h1 { font-size: clamp(30px, 5vw, 44px); font-weight: 900; line-height: 1.2 }
+.lead { font-size: 17px; color: var(--muted); max-width: 68ch }
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px }
+.stat b { font-size: 26px; font-weight: 900; font-variant-numeric: tabular-nums; white-space: nowrap }
+.stat b .from { color: var(--before) } .stat b .to { color: var(--after) }
+.stat span { font-size: 13px; color: var(--muted) }
+.legend { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 14px; color: var(--muted) }
+.tag { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 10px; border-radius: 999px; white-space: nowrap }
+.tag.b { background: var(--before-soft); color: var(--before) } .tag.a { background: var(--after-soft); color: var(--after) }
+
+nav { display: grid; grid-template-columns: 1fr 1fr; gap: 16px }
+nav div { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px 20px; min-width: 0 }
+nav h2 { font-size: 15px; margin-bottom: 8px }
+nav ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 2px }
+nav a { color: var(--fg); text-decoration: none; border-bottom: 1px solid var(--line) }
+nav a:hover, nav a:focus-visible { color: var(--after); border-color: var(--after) }
+
+.group-title { font-size: 26px; font-weight: 900; padding-bottom: 12px; border-bottom: 2px solid var(--fg) }
+.item { display: flex; flex-direction: column; gap: 18px; scroll-margin-top: 24px }
+.item-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px 14px }
+.item-head .num { font-family: var(--mono); font-size: 14px; color: var(--muted) }
+.item-head h3 { font-size: 24px; font-weight: 700 }
+.item-head .metric { margin-left: auto; font-weight: 900; font-size: 20px; font-variant-numeric: tabular-nums; white-space: nowrap }
+.metric .from { color: var(--before) } .metric .to { color: var(--after) }
+.metric small { font-weight: 500; font-size: 13px; color: var(--muted); margin-left: 6px }
+.summary { font-size: 17px; max-width: 72ch }
+
+.ba { display: grid; grid-template-columns: 1fr 1fr; gap: 16px }
+.ba > div { min-width: 0; border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 6px }
+.ba .b { background: var(--before-soft) } .ba .a { background: var(--after-soft) }
+.ba .lbl { font-size: 13px; font-weight: 700 } .ba .b .lbl { color: var(--before) } .ba .a .lbl { color: var(--after) }
+.ba p { font-size: 15px }
+
+.shots { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start }
+.shots.single { grid-template-columns: minmax(0, 720px) }
+figure { margin: 0; min-width: 0; display: flex; flex-direction: column; gap: 8px }
+figure button { all: unset; cursor: zoom-in; display: block; border-radius: 10px; overflow: hidden; background: var(--shot); border: 1px solid var(--line) }
+figure button:focus-visible { outline: 3px solid var(--after); outline-offset: 2px }
+figure img { display: block; width: 100%; height: auto; max-width: 100% }
+figcaption { font-size: 14px; color: var(--muted); display: flex; gap: 8px; align-items: baseline }
+figcaption .tag { flex: none }
+
+pre { margin: 0; background: var(--code-bg); border-radius: 10px; padding: 14px 16px; font-size: 13px; line-height: 1.6; overflow-x: auto; white-space: pre }
+.codes { display: grid; grid-template-columns: 1fr 1fr; gap: 16px }
+.codes > div { min-width: 0; display: flex; flex-direction: column; gap: 6px }
+.where { font-size: 13px; color: var(--muted) } .where code { font-size: 12.5px; background: var(--code-bg); padding: 1px 6px; border-radius: 5px }
+table { border-collapse: collapse; width: 100%; font-size: 15px; font-variant-numeric: tabular-nums }
+.tbl { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 12px }
+th, td { padding: 10px 14px; border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap }
+th { font-size: 13px; color: var(--muted); font-weight: 700 }
+td.n { text-align: right } th.n { text-align: right }
+td.bv { color: var(--before) } td.av { color: var(--after); font-weight: 700 }
+tr:last-child td { border-bottom: none }
+.note { font-size: 14px; color: var(--muted); max-width: 72ch }
+hr { border: none; border-top: 1px solid var(--line); margin: 0 }
+
+.lightbox { position: fixed; inset: 0; background: rgba(8, 10, 14, .9); display: flex; align-items: center; justify-content: center; z-index: 20;
+  padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); cursor: zoom-out }
+.lightbox img { max-width: 100%; max-height: 100%; border-radius: 8px }
+
+@media (max-width: 760px) {
+  .stats { grid-template-columns: 1fr 1fr } nav, .ba, .shots, .codes { grid-template-columns: 1fr }
+  .item-head .metric { margin-left: 0 }
+}
+@media (prefers-reduced-motion: no-preference) { nav a { transition: color .15s } }
+</style>
+
+<div class="wrap">
+<header>
+  <p class="eyebrow">AI 서비스 개발 MINI-PROJECT · 과제 1</p>
+  <h1>Base 에이전트, 무엇을 개선하고 무엇을 추가했나</h1>
+  <p class="lead">원본 Base(all_total_vue_student)와 개선판(task1_improved)에 같은 질문을 넣고 실제 화면을 캡처했습니다. 두 앱 모두 같은 데이터, 같은 모델(gpt-4o-mini)로 실행했습니다. 수치는 정답이 정해진 질문 18개를 3번씩 돌린 평가 결과입니다.</p>
+  <div class="stats">
+    <div class="stat"><b><span class="from">27%</span> → <span class="to">100%</span></b><span>정답 매뉴얼 선택률</span></div>
+    <div class="stat"><b><span class="from">46%</span> → <span class="to">0%</span></b><span>엉뚱한 시스템을 조사한 비율</span></div>
+    <div class="stat"><b><span class="from">27%</span> → <span class="to">0%</span></b><span>환각 비율 (gpt-4o 채점)</span></div>
+    <div class="stat"><b><span class="from">24%</span> → <span class="to">0%</span></b><span>위험 조치가 승인 없이 나간 비율</span></div>
+  </div>
+  <p class="legend"><span class="tag b">Before</span> 원본 Base <span class="tag a">After</span> 개선판 · 캡처를 누르면 크게 볼 수 있습니다</p>
+</header>
+
+<nav aria-label="목차">
+  <div><h2>개선사항 — 있던 기능을 더 좋게</h2><ol>
+    <li><a href="#rag">RAG 매뉴얼 검색</a></li><li><a href="#verify">사실 검증</a></li><li><a href="#multi">멀티 에이전트</a></li>
+    <li><a href="#module">모듈화</a></li><li><a href="#hardcode">하드코딩 제거</a></li><li><a href="#async">비동기 · 스트리밍</a></li></ol></div>
+  <div><h2>기능추가 — 없던 기능</h2><ol>
+    <li><a href="#hitl">위험 조치 승인 (HITL)</a></li><li><a href="#eval">자동 평가</a></li><li><a href="#memory">대화 메모리</a></li>
+    <li><a href="#logs">로그 분석</a></li><li><a href="#tests">단위 테스트</a></li></ol></div>
+</nav>
+
+<h2 class="group-title">개선사항</h2>
+
+<section class="item" id="rag">
+  <div class="item-head"><span class="num">개선 1</span><h3>RAG 매뉴얼 검색</h3>
+    <span class="metric"><span class="from">27%</span> → <span class="to">100%</span><small>정답 매뉴얼 선택률</small></span></div>
+  <p class="summary">장애 대응 매뉴얼(runbook)을 고르는 방법을 단어 찾기에서 의미 검색으로 바꿨습니다. 문제가 있는 시스템마다 맞는 매뉴얼을 따로 찾습니다.</p>
+  <div class="ba">
+    <div class="b"><span class="lbl">Before</span><p>알림 문구에 "cpu", "memory" 같은 단어가 있는지 위에서부터 찾아 <b>처음 걸린 매뉴얼 1개만</b> 골랐습니다. 문제가 두 개면 하나를 놓치고, 목록에 없는 새 장애는 엉뚱한 "DB 다운" 매뉴얼을 가져왔습니다.</p></div>
+    <div class="a"><span class="lbl">After</span><p>매뉴얼을 벡터 DB에 저장해 두고, 시스템마다 <b>"상태 + 알림 + 에러 로그"</b>로 뜻이 가장 가까운 매뉴얼을 찾습니다. 새 매뉴얼 파일을 넣기만 하면 코드를 고치지 않아도 검색됩니다.</p></div>
+  </div>
+  <div class="shots">
+    <figure><button type="button" data-zoom="images/base_multi.png"><img src="images/base_multi.png" alt="원본 Base 화면: cpu-spike 매뉴얼 하나만 조회한 진행 단계와 답변" loading="lazy"></button>
+      <figcaption><span class="tag b">Before</span>"게이트웨이 타임아웃"을 물었는데 cpu-spike 매뉴얼 하나만 조회했습니다.</figcaption></figure>
+    <figure><button type="button" data-zoom="images/imp_multi.png"><img src="images/imp_multi.png" alt="개선판 화면: network-timeout과 cpu-spike 매뉴얼 두 개를 선택한 진행 단계와 답변" loading="lazy"></button>
+      <figcaption><span class="tag a">After</span>게이트웨이는 network-timeout, 결제 서비스는 cpu-spike로 매뉴얼 2개를 골랐습니다.</figcaption></figure>
+  </div>
+  <p class="where">코드: <code>agent/rag/</code> · <code>agent/nodes/runbook_agent.py</code> — 키워드 규칙 6/8 → 의미 검색 8/8 (오프라인 실험)</p>
+</section>
+<hr>
+
+<section class="item" id="verify">
+  <div class="item-head"><span class="num">개선 2</span><h3>사실 검증</h3>
+    <span class="metric"><span class="from">27%</span> → <span class="to">0%</span><small>환각 비율</small></span></div>
+  <p class="summary">답변을 내보내기 전에 검사하는 기준을 "형식"에서 "내용이 사실인지"로 넓혔습니다.</p>
+  <div class="ba">
+    <div class="b"><span class="lbl">Before</span><p>30자 이상이고 "1)"이 들어 있으면 합격이었습니다. 측정하지도 않은 시스템의 "CPU 53.5%" 같은 지어낸 숫자도 그대로 통과했습니다.</p></div>
+    <div class="a"><span class="lbl">After</span><p>형식 검사는 유지하고, 답변 속 <b>숫자가 실제 측정값·알림·로그·매뉴얼에 있는지</b>, <b>조사하지 않은 시스템을 원인으로 단정하지 않았는지</b> 코드로 대조합니다. 틀리면 이유를 주고 다시 쓰게 하고, 3번 실패하면 측정값만 옮긴 안전한 답변으로 바꿉니다.</p></div>
+  </div>
+  <div class="codes">
+    <div><span class="tag b">Before · graph.py</span><pre>ok = len(draft) &gt;= 30 and "1)" in draft
+if not ok and attempts &gt;= 3:
+    ok = True   # 3회째는 통과 처리</pre></div>
+    <div><span class="tag a">After · validators.py</span><pre>failures = (check_format(draft)          # 형식
+          + check_numbers(draft, collected) # 숫자 출처
+          + check_systems(draft, targets))  # 조사한 시스템만
+# 3회 실패 → fallback_report(collected)</pre></div>
+  </div>
+  <p class="where">코드: <code>agent/validators.py</code> · <code>agent/nodes/validate.py</code> — 화면에서는 진행 단계가 "검수 통과"(Before)에서 "사실 검증 통과"(After)로 바뀝니다.</p>
+</section>
+<hr>
+
+<section class="item" id="multi">
+  <div class="item-head"><span class="num">개선 3</span><h3>멀티 에이전트</h3></div>
+  <p class="summary">조사를 한 노드가 다 하던 구조에서, 역할별 서브에이전트 셋이 나눠 맡는 구조로 바꿨습니다. 메트릭과 로그는 동시에 조사하고, 그 결과로 매뉴얼을 고릅니다.</p>
+  <div class="ba">
+    <div class="b"><span class="lbl">Before · 실제 진행 단계</span><pre>계획 수립: 할 일 2가지
+모니터링 지표 확인 (gateway-service)
+모니터링 지표 확인 (payments-service)
+정보 부족 → 장애유형 "cpu-spike"로 추가 조사
+대응 매뉴얼 조회 (cpu-spike)</pre></div>
+    <div class="a"><span class="lbl">After · 실제 진행 단계</span><pre>서브에이전트 호출: 메트릭 · 로그(병렬) → runbook
+로그 에이전트: gateway-service 에러 로그 3줄
+메트릭 에이전트: payments-service 지표 조회
+이상 시스템: gateway-service, payments-service
+RAG runbook 선택: …→network-timeout, …→cpu-spike</pre></div>
+  </div>
+  <p class="where">코드: <code>agent/nodes/research_supervisor.py</code> · <code>metric_agent.py</code> · <code>log_agent.py</code> · <code>runbook_agent.py</code> — 병렬 쓰기 충돌은 상태 reducer로 해결</p>
+</section>
+<hr>
+
+<section class="item" id="module">
+  <div class="item-head"><span class="num">개선 4</span><h3>모듈화</h3>
+    <span class="metric"><span class="from">338줄</span> → <span class="to">76줄</span><small>graph.py</small></span></div>
+  <p class="summary">한 파일에 몰려 있던 노드를 파일 하나에 노드 하나씩 나눴습니다. graph.py는 노드를 연결하는 일만 합니다.</p>
+  <div class="codes">
+    <div><span class="tag b">Before</span><pre>agent/
+├── graph.py        ← 노드 9개 + 규칙 + 라우팅 (338줄)
+├── openai_llm.py   ← 프롬프트 복사본 1
+├── ollama_llm.py   ← 프롬프트 복사본 2
+└── fake_llm.py</pre></div>
+    <div><span class="tag a">After</span><pre>agent/
+├── graph.py        ← 연결만 (76줄)
+├── nodes/          ← 노드 1개 = 파일 1개 (15개)
+├── rag/            ← 검색
+├── llm/            ← 프롬프트 한곳 + 전송 계층
+└── config.py · validators.py · bootstrap.py</pre></div>
+  </div>
+</section>
+<hr>
+
+<section class="item" id="hardcode">
+  <div class="item-head"><span class="num">개선 5</span><h3>하드코딩 제거</h3>
+    <span class="metric"><span class="from">46%</span> → <span class="to">0%</span><small>엉뚱한 시스템 조사</small></span></div>
+  <p class="summary">대상 시스템을 못 찾으면 무조건 auth-service로 정해 두던 코드를 없앴습니다. 이름, 별칭, 이전 대화, LLM 판단 순서로 찾고, 그래도 모르면 되묻습니다.</p>
+  <div class="ba">
+    <div class="b"><span class="lbl">Before</span><p>시스템을 못 찾으면 auth-service, 장애 유형을 못 찾으면 db-down. "결제가 지연돼요"처럼 기능으로 말하거나 없는 시스템을 물어도 auth-service를 진단했습니다.</p></div>
+    <div class="a"><span class="lbl">After</span><p>"결제" → payments-service처럼 별칭으로 찾고, "그 서비스"는 이전 대화에서 찾습니다. 끝까지 모르면 <b>추측하지 않고 되묻습니다.</b> 기본값은 설정 파일로 옮겼습니다.</p></div>
+  </div>
+  <div class="shots">
+    <figure><button type="button" data-zoom="images/base_alias.png"><img src="images/base_alias.png" alt="원본 Base 화면: 결제 지연 질문에 auth-service를 조사한 답변" loading="lazy"></button>
+      <figcaption><span class="tag b">Before</span>"결제가 자꾸 지연돼요" → 상관없는 auth-service를 진단했습니다.</figcaption></figure>
+    <figure><button type="button" data-zoom="images/imp_alias.png"><img src="images/imp_alias.png" alt="개선판 화면: 별칭으로 payments-service를 찾아 진단한 답변" loading="lazy"></button>
+      <figcaption><span class="tag a">After</span>별칭으로 payments-service를 찾아 CPU 급증 매뉴얼로 진단했습니다.</figcaption></figure>
+    <figure><button type="button" data-zoom="images/base_unknown.png"><img src="images/base_unknown.png" alt="원본 Base 화면: 없는 billing-service 질문에 auth-service를 진단한 답변" loading="lazy"></button>
+      <figcaption><span class="tag b">Before</span>모니터링하지 않는 billing-service를 묻자 auth-service로 답했습니다.</figcaption></figure>
+    <figure><button type="button" data-zoom="images/imp_unknown.png"><img src="images/imp_unknown.png" alt="개선판 화면: 모니터링 대상이 아니라고 알리고 되묻는 답변" loading="lazy"></button>
+      <figcaption><span class="tag a">After</span>모니터링 대상이 아니라고 알리고, 시스템 목록과 함께 되묻습니다.</figcaption></figure>
+  </div>
+  <p class="where">코드: <code>agent/config.py</code> · <code>agent/nodes/plan.py</code> · 설정 <code>data/agent_config.json</code></p>
+</section>
+<hr>
+
+<section class="item" id="async">
+  <div class="item-head"><span class="num">개선 6</span><h3>비동기 · 스트리밍</h3>
+    <span class="metric"><span class="from">4.97초</span> → <span class="to">4.26초</span><small>응답 시간 중앙값</small></span></div>
+  <p class="summary">LLM을 부르는 동안 서버 전체가 멈추던 방식을 비동기 호출로 바꾸고, 답변을 글자가 만들어지는 대로 화면에 보냅니다.</p>
+  <div class="codes">
+    <div><span class="tag b">Before · openai_llm.py</span><pre>resp = httpx.post(OPENAI_URL, ...)   # 동기 호출
+# async 노드 안에서 이벤트 루프가 멈춤
+# OpenAI 답변은 다 만든 뒤 한 번에 전송</pre></div>
+    <div><span class="tag a">After · llm/clients.py</span><pre>async with httpx.AsyncClient() as c:
+    async with c.stream("POST", URL,
+                        json={..., "stream": True}):
+        ...on_token(piece)   # 글자 단위 전송</pre></div>
+  </div>
+  <p class="note">응답 시간 단축은 Base에 있던 고정 지연(작업당 0.35초) 제거와 불필요한 조사 감소의 영향이 더 큽니다.</p>
+</section>
+
+<h2 class="group-title">기능추가</h2>
+
+<section class="item" id="hitl">
+  <div class="item-head"><span class="num">추가 1</span><h3>위험 조치 승인 (HITL)</h3>
+    <span class="metric"><span class="from">24%</span> → <span class="to">0%</span><small>승인 없이 나간 위험 조치</small></span></div>
+  <p class="summary">재시작, 롤백, failover처럼 서비스를 멈출 수 있는 조치가 답변에 들어가면, 바로 보내지 않고 운영자 승인을 받습니다.</p>
+  <div class="ba">
+    <div class="b"><span class="lbl">Before</span><p>위험 조치를 걸러내는 단계가 없어서 "즉시 재시작을 권장합니다"가 그대로 나갔습니다.</p></div>
+    <div class="a"><span class="lbl">After</span><p>위험 조치를 "실행하라"는 문장을 찾으면(재시작 여부 "확인" 같은 점검 문장은 제외) <code>interrupt()</code>로 멈추고 승인 카드를 띄웁니다. 승인하면 그대로 보내고, 거절하면 위험 조치를 뺀 대안으로 다시 씁니다. 대기 상태는 SQLite에 저장돼 서버를 재시작해도 이어집니다.</p></div>
+  </div>
+  <div class="shots">
+    <figure><button type="button" data-zoom="images/base_risky.png"><img src="images/base_risky.png" alt="원본 Base 화면: 즉시 재시작을 권장한다고 바로 답한 화면" loading="lazy"></button>
+      <figcaption><span class="tag b">Before</span>"즉시 재시작을 권장합니다"가 승인 없이 바로 나갔습니다.</figcaption></figure>
+    <figure><button type="button" data-zoom="images/imp_risky.png"><img src="images/imp_risky.png" alt="개선판 화면: 위험 조치를 찾아 승인과 거절 버튼이 있는 운영자 승인 카드를 띄운 화면" loading="lazy"></button>
+      <figcaption><span class="tag a">After</span>위험 조치를 찾아 멈추고, 승인·거절 버튼이 있는 카드를 띄웠습니다.</figcaption></figure>
+  </div>
+  <p class="where">코드: <code>agent/nodes/risk_gate.py</code> · <code>server.py</code>의 <code>/approve</code> · 위험 패턴 <code>data/risk_policy.json</code></p>
+</section>
+<hr>
+
+<section class="item" id="eval">
+  <div class="item-head"><span class="num">추가 2</span><h3>자동 평가</h3></div>
+  <p class="summary">"좋아졌다"를 숫자로 보이기 위해, 정답이 정해진 질문을 원본과 개선판에 똑같이 보내고 자동으로 채점하는 도구를 만들었습니다.</p>
+  <div class="ba">
+    <div class="b"><span class="lbl">Before</span><p>평가 스크립트가 없어서 개선 효과를 확인할 방법이 없었습니다.</p></div>
+    <div class="a"><span class="lbl">After</span><p>질문 28개(복합 장애, 새 장애, 증상만 말하기, 대상 불명, 후속 질문, 긴 대화, 위험 조치). 원본은 코드를 그대로 복사해 실행하고, 조사한 시스템·매뉴얼은 코드로, 진단 근거·환각은 gpt-4o가 채점합니다.</p></div>
+  </div>
+  <div class="tbl"><table>
+    <tr><th>지표 (test 18건 × 3회)</th><th class="n">Before</th><th class="n">After</th></tr>
+    <tr><td>정답 매뉴얼 선택률</td><td class="n bv">27.4%</td><td class="n av">100%</td></tr>
+    <tr><td>엉뚱한 시스템을 조사한 비율</td><td class="n bv">45.8%</td><td class="n av">0%</td></tr>
+    <tr><td>모호한 요청 되묻기</td><td class="n bv">0%</td><td class="n av">100%</td></tr>
+    <tr><td>긴 대화 후 앞선 정보 기억</td><td class="n bv">0%</td><td class="n av">100%</td></tr>
+    <tr><td>환각 비율 (gpt-4o 채점)</td><td class="n bv">27.1%</td><td class="n av">0%</td></tr>
+    <tr><td>위험 조치가 승인 없이 나간 비율</td><td class="n bv">23.8%</td><td class="n av">0%</td></tr>
+    <tr><td>진단 근거 점수 (5점 만점)</td><td class="n bv">3.29</td><td class="n av">5.00</td></tr>
+    <tr><td>요청당 비용</td><td class="n bv">기준</td><td class="n av">1.7배</td></tr>
+  </table></div>
+  <p class="note">개선 기능을 알고 직접 만든 작은 질문셋이라 After 100%는 낙관적인 수치입니다. 비용이 늘어난 것은 로그와 매뉴얼을 더 넣어 프롬프트가 길어졌기 때문입니다.</p>
+  <p class="where">코드: <code>eval/run_eval.py</code> · <code>eval/metrics.py</code> · <code>eval/before_snapshot.py</code></p>
+</section>
+<hr>
+
+<section class="item" id="memory">
+  <div class="item-head"><span class="num">추가 3</span><h3>대화 메모리</h3>
+    <span class="metric"><span class="from">0%</span> → <span class="to">100%</span><small>긴 대화 후 기억</small></span></div>
+  <p class="summary">대화가 길어지면 오래된 부분을 요약해 저장하고, "그 서비스" 같은 후속 질문도 이전 대화로 이해합니다.</p>
+  <div class="ba">
+    <div class="b"><span class="lbl">Before</span><p>최근 메시지 10개만 보고 답해서, 그보다 앞에서 말한 정보를 잊었습니다.</p></div>
+    <div class="a"><span class="lbl">After</span><p>메시지가 10개를 넘으면 최근 6개만 원문으로 두고 나머지는 누적 요약해 SQLite에 저장합니다. 이미 요약한 부분은 다시 요약하지 않습니다.</p></div>
+  </div>
+  <div class="shots">
+    <figure><button type="button" data-zoom="images/base_memory.png"><img src="images/base_memory.png" alt="원본 Base 화면: 잡담 10번 뒤 사번을 묻자 기억하고 있지 않다고 답한 화면" loading="lazy"></button>
+      <figcaption><span class="tag b">Before</span>처음에 사번을 알려주고 잡담 10번 뒤에 묻자 "기억하고 있지 않습니다".</figcaption></figure>
+    <figure><button type="button" data-zoom="images/imp_memory.png"><img src="images/imp_memory.png" alt="개선판 화면: 대화 요약 저장 후 사번 K4821을 정확히 답한 화면" loading="lazy"></button>
+      <figcaption><span class="tag a">After</span>"긴 대화 요약 저장" 후 "사번은 K4821입니다"라고 답했습니다.</figcaption></figure>
+  </div>
+  <p class="where">코드: <code>agent/nodes/memory.py</code> · <code>agent/session_store.py</code>(summaries 테이블)</p>
+</section>
+<hr>
+
+<section class="item" id="logs">
+  <div class="item-head"><span class="num">추가 4</span><h3>로그 분석 · 데이터 보강</h3></div>
+  <p class="summary">시스템별 에러 로그를 조회하는 도구와 로그 에이전트를 추가해, 진단에 로그 근거가 붙습니다. 시스템 3개와 매뉴얼 2종(인증서 만료, 큐 적체)도 추가했습니다.</p>
+  <div class="ba">
+    <div class="b"><span class="lbl">Before</span><p>로그 데이터가 없어서 CPU·메모리 지표와 알림만으로 진단했습니다. 위 개선 1의 Before 답변에는 로그 근거가 없습니다.</p></div>
+    <div class="a"><span class="lbl">After</span><p>개선 1의 After 답변 1)번처럼 <b>"upstream timed out (110) while reading response header from payments-service"</b> 같은 실제 로그 문장을 근거로 인용합니다. 로그는 매뉴얼 검색 질의에도 쓰입니다.</p></div>
+  </div>
+  <p class="where">코드: <code>mcp_server.py</code>의 <code>get_recent_logs</code> · <code>agent/nodes/log_agent.py</code> · 데이터 <code>data/logs.json</code>, <code>data/runbooks/cert-expiry.md</code>, <code>queue-backlog.md</code></p>
+</section>
+<hr>
+
+<section class="item" id="tests">
+  <div class="item-head"><span class="num">추가 5</span><h3>단위 테스트</h3>
+    <span class="metric"><span class="to">28 passed</span><small>0.71초</small></span></div>
+  <p class="summary">가짜 LLM과 가짜 MCP를 끼워 넣어, 외부 호출 없이 1초 안에 그래프 전체를 검증합니다. 코드를 고칠 때마다 기존 기능이 깨지지 않았는지 확인합니다.</p>
+  <pre>$ bash sh/run_tests.sh
+test_graph_flow.py   ::test_multi_incident_gets_multiple_runbooks
+                     ::test_risky_action_needs_approval_then_approve
+                     ::test_risky_action_rejected_is_removed
+                     ::test_unknown_system_asks_back
+                     ::test_memory_summary_accumulates       … 외 5개
+test_validators.py   ::test_numbers_must_come_from_evidence   … 외 5개
+test_rag.py          ::test_query_uses_status_alerts_logs     … 외 3개
+test_keyword_baseline.py ::test_base_cannot_use_new_runbooks  … 외 1개
+test_config.py · test_retry.py                                … 6개
+============================== 28 passed in 0.71s ==============================</pre>
+  <p class="where">코드: <code>tests/</code> — test_keyword_baseline.py는 Base 키워드 규칙의 한계를 기록하는 테스트입니다.</p>
+</section>
+</div>
+
+<div class="lightbox" id="lightbox" hidden><img id="lightbox-img" alt=""></div>
+<script>
+(function () {
+  var box = document.getElementById('lightbox'), img = document.getElementById('lightbox-img'), last = null;
+  document.querySelectorAll('[data-zoom]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      last = btn; img.src = btn.dataset.zoom; img.alt = btn.querySelector('img').alt; box.hidden = false;
+    });
+  });
+  function close() { box.hidden = true; img.removeAttribute('src'); if (last) last.focus(); }
+  box.addEventListener('click', close);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !box.hidden) close(); });
+})();
+</script>

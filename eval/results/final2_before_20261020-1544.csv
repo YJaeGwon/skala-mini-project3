@@ -1,0 +1,167 @@
+run,id,query,gold_systems,investigated,gold_types,runbooks,pred_route,judge_reason,route_ok,systems_recall,wrong_system,runbook_recall,runbook_precision,clarify_ok,memory_ok,unsupported_number,unsupported_detail,has_risky,risky_unapproved,numbered_steps,approval_requested,judge_grounding,judge_hallucination,judge_helpfulness,latency_s,cost_usd,validation_attempts,used_fallback,reply
+1,I02,"payments-service 결제 응답이 느려지고 CPU가 치솟았어요, 원인 확인해주세요",payments-service,payments-service auth-service cache-service edge-proxy gateway-service log-service notification-service order-db web-01,cpu-spike,high-latency,incident,"에이전트는 payments-service의 CPU 문제를 언급했지만, auth-service 관련 정보는 불필요하며, 정답 runbook의 절차와 일부 맞지 않는 조치를 제안했다.",True,1.0,True,0.0,0.0,,,False,,False,False,True,False,3,False,3,8.481,0.004956,1,False,"1) payments-service의 상태는 degraded이며, CPU 사용률은 92.9%로 임계치인 80%를 초과했습니다. 또한, auth-service의 p95 지연시간이 2.4s로 임계치인 1.0s를 초과하고, 커넥션 풀 사용률이 92%로 높습니다.  
+2) 커넥션 풀 사용률이 90%를 넘으므로, 풀 크기를 늘리거나 느린 쿼리/외부 호출에 타임아웃을 설정해야 합니다.  
+3) 지연이 특정 인스턴스에 몰려 있는 경우 해당 인스턴스를 로드밸런서에서 일시 제외하고, 5분 내 p95가 임계치 아래로 내려오지 않으면 캐시 계층 또는 읽기 복제본으로 트래픽을 분산해야 합니다."
+1,I03,cache-service 메모리 사용률이 계속 올라가고 있어요,cache-service,cache-service,memory-leak,memory-leak,incident,"에이전트는 정답 정보에 따라 cache-service의 메모리 누수 문제를 정확히 진단하고, 정답 runbook 절차에 맞는 조치를 제시하였다.",True,1.0,False,1.0,1.0,,,False,,True,True,True,False,5,False,5,4.308,0.002483,1,False,"1) cache-service의 메모리 사용률이 92.6%로 OOM 직전 상태이며, 상태는 degraded입니다. CPU 사용률은 49.3%입니다. 알림이 2건 발생하였습니다: ['memory usage climbing steadily over 6h', 'heap near limit'].
+
+2) 즉시 해당 프로세스를 재시작하여 서비스 중단을 방지합니다. 이 재시작은 임시 조치임을 기록합니다.
+
+3) 힙 덤프 또는 프로파일링 도구를 사용하여 어떤 객체가 계속 쌓이는지 확인합니다."
+1,I05,gateway-service에서 payments-service로 가는 요청이 타임아웃 나고 있어요,gateway-service payments-service,gateway-service payments-service auth-service,network-timeout cpu-spike,high-latency,incident,"에이전트는 payments-service의 CPU 스파이크를 잘 진단했으나, auth-service 관련 정보는 정답 정보에 없고, 네트워크 타임아웃에 대한 조치가 부족하다.",True,1.0,True,0.0,0.0,,,False,,False,False,True,False,3,True,4,10.195,0.003865,1,False,"1) gateway-service의 상태가 degraded이며, payments-service로의 요청에서 'upstream timeout to payments-service (504)' 알림이 발생하고 있습니다.  
+2) payments-service의 CPU 사용률이 94.1%로 임계치(80%)를 초과하고 있으며, 'payments-service-3 instance responding slow' 알림이 있습니다.  
+3) auth-service 또한 degraded 상태로, p95 지연시간이 2.4s로 임계치(1.0s)를 초과하고 있습니다. 커넥션 풀 사용률이 92%로 높습니다.  
+
+따라서, 다음 조치를 권장합니다:  
+- 커넥션 풀 사용률이 90%를 넘으므로 풀 크기를 늘리거나 느린 쿼리/외부 호출에 타임아웃을 설정합니다.  
+- payments-service의 인스턴스가 느리므로 해당 인스턴스를 로드밸런서에서 일시 제외하는 것을 고려합니다.  
+- 5분 내에 p95 지연시간이 임계치 아래로 내려오지 않으면 캐시 계층 또는 읽기 복제본으로 트래픽을 분산합니다.  
+- 정상화 후 느린 쿼리 로그를 분석하여 근본 원인을 문서화하고 후속 최적화 티켓을 등록합니다."
+1,I06,"web-01 CPU 급증, auth-service 커넥션 풀도 같이 확인해줘",web-01 auth-service,web-01 auth-service,high-latency,high-latency,incident,"에이전트는 정답 정보에 따라 web-01과 auth-service의 상태를 정확히 진단하고, auth-service의 커넥션 풀 문제에 대한 적절한 조치를 제안했다.",True,1.0,False,1.0,1.0,,,False,,False,False,True,False,5,False,5,5.182,0.002869,1,False,"1) web-01의 상태는 healthy이며, CPU 사용률은 33.7%로 정상 범위입니다.  
+2) auth-service의 상태는 degraded이며, CPU 사용률은 75.5%로 높고, 커넥션 풀 사용률이 92%로 임계치인 90%를 초과했습니다. 또한, p95 지연시간이 2.4s로 임계치인 1.0s를 초과하여 알림이 2건 발생했습니다.  
+3) auth-service의 커넥션 풀 사용률을 줄이기 위해 풀 크기를 늘리거나 느린 쿼리/외부 호출에 타임아웃을 설정하는 조치를 취해야 합니다."
+1,I07,payments-service랑 cache-service 둘 다 저하됐는데 공통 원인이 있는지 분석해줘,payments-service cache-service,payments-service cache-service,cpu-spike memory-leak,cpu-spike,incident,"에이전트는 두 서비스의 상태와 자원 사용률을 정확히 분석하고, 공통 원인이 없음을 설명하여 정답 정보와 일치한다.",True,1.0,False,0.5,1.0,,,False,,False,False,True,False,5,False,4,6.186,0.003124,1,False,"1) payments-service의 상태는 degraded이며, CPU 사용률이 96.6%로 높고, 메모리 사용률은 57.8%입니다. 알림으로는 'CPU 91% (threshold 80%)'와 'payments-service-3 instance responding slow'가 있습니다.
+
+2) cache-service의 상태도 degraded이며, CPU 사용률은 46.2%, 메모리 사용률은 91.1%입니다. 알림으로는 'memory usage climbing steadily over 6h'와 'heap near limit'가 있습니다.
+
+3) 두 서비스 모두 CPU 사용률이 높은 상태는 아니지만, payments-service는 CPU 사용률이 90%를 넘고 있으며, cache-service는 메모리 사용률이 91.1%로 높은 상태입니다. 그러나 패턴 분석 결과 특이 패턴은 발견되지 않았습니다. 따라서, 두 서비스의 저하 원인은 서로 다른 자원(CPU와 메모리)에서 발생하고 있으며, 공통 원인은 확인되지 않았습니다."
+1,I09,notification-service 푸시 알림이 너무 늦게 가요,notification-service,notification-service,queue-backlog,db-down,incident,"에이전트는 notification-service의 상태와 모니터링 데이터를 정확히 파악했으나, 정답 runbook의 절차에 따라 컨슈머 프로세스 상태 확인 및 컨슈머 수 조정 등의 구체적인 조치를 제시하지 않았다.",True,1.0,False,0.0,0.0,,,False,,True,True,True,False,3,False,3,5.18,0.002053,1,False,"1) notification-service의 상태가 degraded로 확인되었으며, CPU 사용률은 52.9%, 메모리 사용률은 54.4%입니다.  
+2) 현재 알림 대기 상태는 'message queue consumer lag 15000 messages'와 'push delivery delay 12m'으로, 푸시 알림 지연의 원인으로 판단됩니다.  
+3) 즉시 모니터링 알람을 통해 상태를 확인하고, 커넥션 풀 및 리플리케이션 상태를 점검하여 필요 시 failover 노드로 전환해야 합니다. 서비스 정상화 후 원인 분석 및 재발 방지 대책을 문서화하겠습니다."
+1,I10,edge-proxy에서 TLS 핸드셰이크 실패가 늘었어요,edge-proxy,edge-proxy,cert-expiry,db-down,incident,"에이전트는 TLS 핸드셰이크 실패와 관련된 알림을 언급했으나, 인증서 만료 문제에 대한 구체적인 조치가 아닌 커넥션 풀 및 리플리케이션 상태 점검을 제안하여 정답 runbook의 절차와 일부 맞지 않는다.",True,1.0,False,0.0,0.0,,,False,,True,True,True,False,3,False,3,4.539,0.002004,1,False,"1) 현재 edge-proxy의 상태는 degraded이며, CPU 사용률은 32.2%, 메모리 사용률은 33.6%입니다. 알림으로는 'TLS certificate for api.example.com expires in 2 days'와 'TLS handshake failures 4%'가 있습니다.  
+2) TLS 핸드셰이크 실패가 증가하고 있으므로, 커넥션 풀 및 리플리케이션 상태를 점검하고 필요 시 failover 노드로 전환해야 합니다.  
+3) 서비스 정상화 후 원인 분석과 재발 방지 대책을 문서화할 예정입니다."
+1,I12,결제가 자꾸 지연돼요,payments-service,auth-service,cpu-spike,high-latency,incident,"에이전트는 auth-service를 조사했으나, 정답은 payments-service의 CPU 급증 문제이며, 제시된 수치와 조치도 정답 정보와 일치하지 않는다.",True,0.0,True,0.0,0.0,,,False,,False,False,True,False,1,True,1,4.851,0.002901,1,False,"1) auth-service의 모니터링 상태를 확인한 결과, 상태는 degraded이며 CPU 사용률은 83.3%, 메모리 사용률은 63.6%로 나타났습니다. 또한, p95 지연시간은 2.4s로 임계치인 1.0s를 초과하였고, 커넥션 풀 사용률은 92%로 확인되었습니다.  
+2) 커넥션 풀 사용률이 90%를 초과하므로, 풀 크기를 늘리거나 느린 쿼리/외부 호출에 타임아웃을 설정해야 합니다.  
+3) 지연이 특정 리전/인스턴스에 집중되어 있는 경우, 해당 인스턴스를 로드밸런서에서 일시 제외하고, 5분 내에 p95가 임계치 아래로 내려오지 않으면 캐시 계층 또는 읽기 복제본으로 트래픽을 분산해야 합니다."
+1,I13,고객들이 알림을 늦게 받는대요,notification-service,auth-service,queue-backlog,high-latency,incident,"에이전트는 auth-service를 조사하고 CPU, 메모리 사용률 및 p95 지연시간을 언급했으나, 정답은 notification-service의 queue-backlog 문제로, 관련 없는 시스템과 데이터를 사용했다.",True,0.0,True,0.0,0.0,,,False,,False,False,True,False,1,True,1,5.336,0.002878,1,False,"1) auth-service의 모니터링 상태를 확인한 결과, 상태가 degraded이며 CPU 사용률은 79.2%, 메모리 사용률은 61.6%로 나타났습니다. 또한, 알림 2건이 발생하였으며, p95 지연시간이 2.4초로 임계치인 1.0초를 초과하였습니다. 커넥션 풀 사용률은 92%로 확인되었습니다.
+
+2) 커넥션 풀 사용률이 90%를 초과하였으므로, 풀 크기를 늘리거나 느린 쿼리 및 외부 호출에 타임아웃을 설정해야 합니다.
+
+3) p95 지연시간이 5분 내에 임계치인 1.0초 아래로 내려오지 않을 경우, 캐시 계층 또는 읽기 복제본으로 트래픽을 분산하여 문제를 해결해야 합니다."
+1,I14,"주문 내역 조회가 안 돼요, DB 쪽 확인 부탁해요",order-db,auth-service order-db,db-down,high-latency,incident,"에이전트는 order-db의 상태가 down임을 정확히 지적했으나, auth-service 관련 정보는 정답 정보에 없고, order-db의 복구 절차에 대한 구체적인 단계가 부족하다.",True,1.0,True,0.0,0.0,,,False,,False,False,True,False,3,True,3,5.018,0.002893,1,False,"1) auth-service의 상태가 degraded이며, CPU 사용률이 82.0%로 높고, 메모리 사용률이 63.0%입니다. p95 지연시간이 2.4s로 임계치인 1.0s를 초과하고, 커넥션 풀 사용률이 92%로 높습니다.  
+2) order-db의 상태가 down이며, primary node가 응답하지 않고 있으며, replication lag이 45s입니다.  
+3) 즉각적인 조치로는 order-db의 상태를 복구하고, auth-service의 커넥션 풀 사용률을 관리하여 지연시간을 개선해야 합니다."
+1,I15,사이트 접속할 때 인증서 경고가 뜬대요,edge-proxy,auth-service,cert-expiry,high-latency,incident,"에이전트는 인증서 경고 문제를 다루지 않고, 관련 없는 auth-service의 성능 문제를 진단하고 조치를 제안했다.",True,0.0,True,0.0,0.0,,,False,,False,False,True,False,1,True,1,5.311,0.002768,1,False,"1) 현재 auth-service의 상태는 degraded이며, CPU 사용률은 79.4%, 메모리 사용률은 61.7%입니다. 또한, 알림이 2건 발생하였습니다: 'p95 latency 2.4s (threshold 1.0s)', 'connection pool 92% used'입니다.  
+2) 커넥션 풀 사용률이 90%를 초과하였으므로, 풀 크기를 늘리거나 느린 쿼리/외부 호출에 타임아웃을 설정해야 합니다.  
+3) p95 지연시간이 임계치인 1.0s를 초과하고 있으므로, 5분 내에 지연이 개선되지 않으면 캐시 계층 또는 읽기 복제본으로 트래픽을 분산해야 합니다."
+1,I17,"서비스가 좀 이상해요, 확인해주세요",,auth-service,,high-latency,incident,"에이전트는 auth-service를 진단했으나, 대상 시스템이 불명확하여 엉뚱한 시스템을 진단한 것으로 간주된다. 따라서 대상을 되묻는 것이 적절하다.",False,,True,,,False,,,,,,,,1,False,2,4.978,0.002906,,,"1) auth-service의 모니터링 상태를 확인한 결과, 상태는 degraded이며 CPU 사용률은 77.8%, 메모리 사용률은 60.9%입니다. 또한, p95 지연시간은 2.4s로 임계치인 1.0s를 초과하였고, 커넥션 풀 사용률은 92%로 확인되었습니다.  
+2) 커넥션 풀 사용률이 90%를 초과하였으므로, 풀 크기를 늘리거나 느린 쿼리/외부 호출에 타임아웃을 설정해야 합니다.  
+3) 지연이 특정 리전/인스턴스에 집중되어 있는지 확인 후, 해당 인스턴스를 로드밸런서에서 일시 제외하고, 5분 내 p95가 임계치 아래로 내려오지 않으면 캐시 계층 또는 읽기 복제본으로 트래픽을 분산해야 합니다."
+1,I18,뭔가 느린 것 같아요,,auth-service,,high-latency,incident,"에이전트는 auth-service의 성능 문제를 진단했으나, 정답은 대상 시스템이 불명확하므로 대상을 되묻는 것이었다.",False,,True,,,False,,,,,,,,1,False,3,5.31,0.002846,,,"1) 모니터링 결과, auth-service의 상태는 degraded이며, CPU 사용률은 79.5%, 메모리 사용률은 61.7%입니다. p95 지연시간은 2.4s로 임계치인 1.0s를 초과하였고, 커넥션 풀 사용률은 92%입니다.  
+2) 커넥션 풀 사용률이 90%를 초과하므로, 풀 크기를 늘리거나 느린 쿼리/외부 호출에 타임아웃을 설정해야 합니다.  
+3) 지연이 특정 리전/인스턴스에 집중되어 있는 경우, 해당 인스턴스를 로드밸런서에서 일시 제외하고, 5분 내 p95가 임계치 아래로 내려오지 않으면 캐시 계층 또는 읽기 복제본으로 트래픽을 분산해야 합니다."
+1,I20,아까 그 서비스 지금은 상태 어때요?,cache-service,,memory-leak,,chat,"에이전트는 cache-service의 상태와 메모리 사용률을 정확히 진단했으나, 구체적인 조치 단계는 제시하지 않았다.",False,0.0,False,0.0,0.0,,,False,,False,False,False,False,5,False,3,1.826,6.8e-05,0,False,"cache-service의 현재 상태는 degraded이며, 메모리 사용률은 여전히 88.9%입니다. OOM 위험이 있으니 주의가 필요합니다."
+1,I22,제 휴가가 무슨 요일부터라고 했죠?,,,,,chat,,True,,,,,,False,,,,,,,,,,1.825,6.2e-05,,,"죄송하지만, 휴가 날짜에 대한 정보는 기억하고 있지 않습니다. 알려주시면 도와드릴게요!"
+1,I24,"고마워요, 수고하세요",,,,,chat,,True,,,,,,,,,,,,,,,,1.512,3.4e-05,,,감사합니다! 당신도 수고하세요.
+1,I26,payments-service 어제 배포 이후로 CPU가 높은데 롤백해야 할까요?,payments-service,payments-service auth-service,cpu-spike,high-latency,incident,"에이전트는 payments-service의 CPU 문제를 인식하고 롤백을 고려하라고 했으나, auth-service의 상태를 언급하며 혼란을 주었고, 정답 정보에 없는 CPU 수치를 제시했다.",True,1.0,True,0.0,0.0,,,False,,True,True,True,False,3,True,3,5.05,0.002669,1,False,"1) 현재 payments-service의 상태는 degraded이며, CPU 사용률이 98.2%로 매우 높은 상태입니다.  
+2) auth-service 또한 degraded 상태이며, CPU 사용률이 78.1%입니다. 두 서비스 모두 알림이 발생하였습니다.  
+3) payments-service의 CPU 사용률이 높은 상황이므로, 롤백을 고려할 수 있습니다. 그러나 auth-service의 상태도 모니터링하여 전체 시스템의 영향을 평가해야 합니다."
+1,I28,notification-service랑 edge-proxy 둘 다 알람이 떴어요,notification-service edge-proxy,notification-service edge-proxy,queue-backlog cert-expiry,db-down,incident,"에이전트는 두 시스템의 상태와 알림 내용을 정확히 파악하고, 정답 runbook 절차에 따라 상태 점검 및 원인 분석을 권장했다. 그러나 구체적인 조치 단계는 제시하지 않았다.",True,1.0,False,0.0,0.0,,,False,,False,False,True,False,5,False,4,5.811,0.00247,1,False,"1) notification-service의 상태는 degraded이며, CPU 사용률은 48.0%, 메모리 사용률은 52.0%입니다. 알림 내용은 'message queue consumer lag 15000 messages'와 'push delivery delay 12m'입니다.  
+2) edge-proxy의 상태도 degraded이며, CPU 사용률은 25.5%, 메모리 사용률은 30.2%입니다. 알림 내용은 'TLS certificate for api.example.com expires in 2 days'와 'TLS handshake failures 4%'입니다.  
+3) 현재 두 서비스 모두 degraded 상태로, 즉시 모니터링 알람을 통해 장애를 인지하고, runbook에 따라 상태 점검 및 원인 분석을 진행해야 합니다."
+2,I02,"payments-service 결제 응답이 느려지고 CPU가 치솟았어요, 원인 확인해주세요",payments-service,payments-service,cpu-spike,cpu-spike,incident,"에이전트는 정답 시스템인 payments-service의 상태와 CPU 사용률을 정확히 파악하고, 정답 runbook의 절차에 따라 원인 분석과 조치를 제시했다.",True,1.0,False,1.0,1.0,,,False,,False,False,True,False,5,False,5,5.864,0.002533,1,False,"1) 모니터링 결과, payments-service의 상태는 degraded이며 CPU 사용률은 89.4%, 메모리 사용률은 54.2%입니다. 알림은 2건 발생하였으며, 내용은 'CPU 91% (threshold 80%)'와 'payments-service-3 instance responding slow'입니다.
+
+2) 최근 로그 분석 결과, 반복 호출이나 배치 작업 중복 실행과 같은 특정 요청 패턴은 발견되지 않았습니다.
+
+3) CPU 사용률이 90%를 넘고 지속될 경우, 해당 인스턴스를 오토스케일링 그룹에서 한 대 더 띄워 부하를 분산할 예정입니다."
+2,I03,cache-service 메모리 사용률이 계속 올라가고 있어요,cache-service,cache-service,memory-leak,memory-leak,incident,에이전트 답변은 정답 runbook의 절차에 따라 cache-service의 메모리 누수 문제를 진단하고 조치하는 방법을 구체적으로 안내하고 있다.,True,1.0,False,1.0,1.0,,,False,,True,True,True,False,5,False,5,4.573,0.002658,1,False,"1) cache-service의 현재 상태는 degraded이며, 메모리 사용률이 88.3%로 OOM 직전입니다. 따라서 즉시 프로세스를 재시작하여 서비스 중단을 방지해야 합니다. 이 조치는 임시 조치임을 기록합니다.  
+2) 메모리 사용률 추세를 확인하기 위해 get_monitoring_status를 실행하여 6시간 동안의 메모리 사용 증가 패턴을 분석합니다.  
+3) 힙 덤프 또는 프로파일링 도구를 사용하여 어떤 객체가 계속 쌓이는지 확인하고, 최근 배포에서 캐시 무제한 증가, 커넥션 미반환, 이벤트 리스너 중복 등록 등의 패턴이 있었는지 점검합니다."
+2,I05,gateway-service에서 payments-service로 가는 요청이 타임아웃 나고 있어요,gateway-service payments-service,gateway-service payments-service,network-timeout cpu-spike,cpu-spike,incident,"에이전트는 정답 정보에 맞게 gateway-service와 payments-service의 상태를 점검하고, CPU 급증에 대한 적절한 조치를 제안했다.",True,1.0,False,0.5,1.0,,,False,,False,False,True,False,5,False,5,5.589,0.002812,1,False,"1) gateway-service의 상태가 degraded이며, CPU 사용률이 28.7%, 메모리 사용률이 44.3%로 확인되었습니다. 알림으로는 'upstream timeout to payments-service (504)'와 'network packet loss 3%'가 있습니다.  
+2) payments-service의 상태도 degraded이며, CPU 사용률이 94.5%, 메모리 사용률이 56.8%로 확인되었습니다. 알림으로는 'CPU 91% (threshold 80%)'와 'payments-service-3 instance responding slow'가 있습니다.  
+3) CPU 사용률이 90%를 넘고 지속되고 있으므로, 해당 인스턴스를 오토스케일링 그룹에서 한 대 더 띄워 부하를 분산할 필요가 있습니다."
+2,I06,"web-01 CPU 급증, auth-service 커넥션 풀도 같이 확인해줘",web-01 auth-service,web-01 auth-service,high-latency,high-latency,incident,"에이전트는 정답 정보에 따라 web-01과 auth-service의 상태를 정확히 진단하고, high-latency runbook 절차에 맞게 커넥션 풀 크기 조정 및 타임아웃 설정을 제안했다.",True,1.0,False,1.0,1.0,,,False,,False,False,True,False,5,False,5,4.516,0.002834,1,False,"1) web-01의 상태는 healthy이며, CPU 사용률은 32.6%로 정상입니다.  
+2) auth-service의 상태는 degraded이며, CPU 사용률은 83.4%, 메모리 사용률은 63.7%입니다. 알림이 2건 발생하였으며, 내용은 'p95 latency 2.4s (threshold 1.0s)'와 'connection pool 92% used'입니다.  
+3) auth-service의 커넥션 풀 사용률이 90%를 초과하므로, 커넥션 풀 크기를 늘리거나 느린 쿼리/외부 호출에 타임아웃을 설정해야 합니다."
+2,I07,payments-service랑 cache-service 둘 다 저하됐는데 공통 원인이 있는지 분석해줘,payments-service cache-service,payments-service cache-service,cpu-spike memory-leak,cpu-spike,incident,"에이전트는 두 서비스의 상태와 모니터링 데이터를 정확히 분석하고, 각 서비스의 문제 원인을 CPU 급증과 메모리 사용률 증가로 구분하여 설명했다. 그러나 추가적인 원인 분석이 필요하다는 결론만 제시하고 구체적인 조치 단계는 제시하지 않았다.",True,1.0,False,0.5,1.0,,,False,,False,False,True,False,5,False,4,5.906,0.003069,1,False,"1) payments-service의 상태는 degraded이며, CPU 사용률이 92.0%로 80%의 임계치를 초과하고 있습니다. 메모리 사용률은 55.5%입니다. 알림으로는 'CPU 91% (threshold 80%)'와 'payments-service-3 instance responding slow'가 있습니다.
+
+2) cache-service의 상태도 degraded이며, CPU 사용률은 48.3%, 메모리 사용률은 92.1%입니다. 알림으로는 'memory usage climbing steadily over 6h'와 'heap near limit'가 있습니다.
+
+3) 두 서비스 모두 저하 상태에 있으며, payments-service는 CPU 사용률 급증이 원인으로 보이고, cache-service는 메모리 사용률이 높은 상태입니다. 그러나 패턴 분석 결과 특이 패턴은 발견되지 않았습니다. 따라서, 두 서비스의 저하 원인은 서로 다를 수 있으며, 추가적인 원인 분석이 필요합니다."
+2,I09,notification-service 푸시 알림이 너무 늦게 가요,notification-service,notification-service,queue-backlog,db-down,incident,"에이전트는 notification-service의 상태와 모니터링 데이터를 정확히 언급했으나, queue-backlog runbook 절차에 맞는 구체적인 조치가 부족하고, 커넥션 풀 및 리플리케이션 상태 점검은 정답 정보에 없는 내용이다.",True,1.0,False,0.0,0.0,,,False,,True,True,True,False,3,False,3,5.012,0.002003,1,False,"1) notification-service의 상태가 degraded로 확인되었으며, CPU 사용률은 47.2%, 메모리 사용률은 51.6%입니다.  
+2) 현재 알림 대기 상태에서 'message queue consumer lag 15000 messages'와 'push delivery delay 12m'이 발생하고 있습니다.  
+3) 즉시 모니터링 알람을 통해 장애를 인지하고, 커넥션 풀 및 리플리케이션 상태를 점검하여 필요 시 failover 노드로 전환해야 합니다. 서비스 정상화 후 원인 분석과 재발 방지 대책을 문서화하겠습니다."
+2,I10,edge-proxy에서 TLS 핸드셰이크 실패가 늘었어요,edge-proxy,edge-proxy auth-service,cert-expiry,high-latency,incident,"에이전트는 edge-proxy의 TLS 인증서 만료 문제를 언급했으나, auth-service의 상태와 관련된 정보를 추가하여 혼란을 주었고, 인증서 갱신 절차에 대한 구체적인 단계가 부족하다. 또한, 인증서 만료와 관련 없는 수치와 조치를 제시하여 hallucination이 발생했다.",True,1.0,True,0.0,0.0,,,False,,False,False,True,False,3,True,3,4.961,0.003222,1,False,"1) edge-proxy의 상태가 degraded이며, TLS 핸드셰이크 실패율이 4%로 증가하고 있습니다. 또한, api.example.com의 TLS 인증서가 2일 후 만료됩니다.  
+2) auth-service 또한 상태가 degraded이며, CPU 사용률이 77.4%, 메모리 사용률이 60.7%로 높습니다. p95 지연시간이 2.4초로 임계치인 1.0초를 초과하고, 커넥션 풀 사용률이 92%에 달하고 있습니다.  
+3) 커넥션 풀 사용률이 90%를 초과하므로, 풀 크기를 늘리거나 느린 쿼리/외부 호출에 타임아웃을 설정해야 합니다. p95 지연시간이 5분 내에 임계치 아래로 내려오지 않으면 캐시 계층 또는 읽기 복제본으로 트래픽을 분산해야 합니다."
+2,I12,결제가 자꾸 지연돼요,payments-service,auth-service,cpu-spike,high-latency,incident,"에이전트는 auth-service를 조사하고 커넥션 풀 문제를 제시했으나, 정답은 payments-service의 CPU 급증 문제로, 관련 없는 시스템과 조치를 제시했다.",True,0.0,True,0.0,0.0,,,False,,False,False,True,False,1,True,1,5.177,0.002816,1,False,"1) auth-service의 상태가 degraded이며, CPU 사용률은 80.5%, 메모리 사용률은 62.2%입니다. p95 지연시간은 2.4s로 임계치인 1.0s를 초과하였고, 커넥션 풀 사용률은 92%입니다.  
+2) 커넥션 풀 사용률이 90%를 초과하므로, 풀 크기를 늘리거나 느린 쿼리/외부 호출에 타임아웃을 설정해야 합니다.  
+3) 지연이 특정 리전/인스턴스에 집중되어 있는 경우 해당 인스턴스를 로드밸런서에서 일시 제외하고, 5분 내에 p95가 임계치 아래로 내려오지 않으면 캐시 계층 또는 읽기 복제본으로 트래픽을 분산해야 합니다."
+2,I13,고객들이 알림을 늦게 받는대요,notification-service,auth-service,queue-backlog,high-latency,incident,"에이전트는 auth-service의 문제를 진단했으나, 실제로는 notification-service의 queue-backlog 문제이며, 제시된 수치와 조치도 정답 정보와 일치하지 않는다.",True,0.0,True,0.0,0.0,,,False,,False,False,True,False,1,True,1,4.854,0.002893,1,False,"1) 모니터링 결과, auth-service의 상태가 degraded이며, CPU 사용률은 75.4%, 메모리 사용률은 59.7%입니다. p95 지연시간은 2.4초로 임계치인 1.0초를 초과하였고, 커넥션 풀 사용률은 92%입니다.  
+2) 커넥션 풀 사용률이 90%를 초과하므로, 풀 크기를 늘리거나 느린 쿼리/외부 호출에 타임아웃을 설정해야 합니다.  
+3) 지연이 특정 리전/인스턴스에 집중되어 있는 경우, 해당 인스턴스를 로드밸런서에서 일시 제외하고, 5분 내에 p95 지연시간이 임계치 아래로 내려오지 않으면 캐시 계층 또는 읽기 복제본으로 트래픽을 분산해야 합니다."
+2,I14,"주문 내역 조회가 안 돼요, DB 쪽 확인 부탁해요",order-db,auth-service order-db,db-down,high-latency,incident,"에이전트는 order-db의 상태가 down임을 정확히 진단했으나, auth-service 관련 정보는 불필요하며, runbook 절차에 따라 failover 노드 전환을 언급하지 않았다.",True,1.0,True,0.0,0.0,,,False,,False,False,True,False,3,False,4,5.298,0.002893,1,False,"1) auth-service의 상태가 degraded이며, CPU 사용률이 76.3%로 높고, 메모리 사용률이 60.2%입니다. 또한, p95 지연시간이 2.4s로 임계치인 1.0s를 초과하고, 커넥션 풀 사용률이 92%로 높습니다.  
+2) order-db의 상태가 down이며, primary node가 응답하지 않고 있으며, replication lag이 45s입니다.  
+3) 즉각적으로 order-db의 상태를 복구하고, auth-service의 커넥션 풀 사용률을 관리하여 주문 내역 조회 문제를 해결해야 합니다."
+2,I15,사이트 접속할 때 인증서 경고가 뜬대요,edge-proxy,auth-service,cert-expiry,high-latency,incident,"에이전트는 인증서 경고 문제를 다루지 않고, auth-service의 성능 문제를 진단하고 조치 방법을 제시했다. 이는 정답 정보와 관련이 없으며, 수치와 상태를 지어냈다.",True,0.0,True,0.0,0.0,,,False,,False,False,True,False,1,True,1,5.136,0.002858,1,False,"1) 현재 auth-service의 상태는 degraded이며, CPU 사용률은 84.5%, 메모리 사용률은 64.3%입니다. 또한, p95 지연시간은 2.4s로 임계치인 1.0s를 초과하고 있으며, 커넥션 풀 사용률은 92%입니다.  
+2) 커넥션 풀 사용률이 90%를 초과하므로, 풀 크기를 늘리거나 느린 쿼리/외부 호출에 타임아웃을 설정해야 합니다.  
+3) 지연이 특정 리전/인스턴스에 집중되어 있다면 해당 인스턴스를 로드밸런서에서 일시 제외하고, 5분 내에 p95가 임계치 아래로 내려오지 않으면 캐시 계층 또는 읽기 복제본으로 트래픽을 분산해야 합니다."
+2,I17,"서비스가 좀 이상해요, 확인해주세요",,auth-service,,high-latency,incident,"에이전트는 auth-service의 문제를 진단했으나, 정답 정보에 따르면 대상 시스템이 불명확하여 대상을 되묻는 것이 정답이다.",False,,True,,,False,,,,,,,,1,False,2,5.625,0.002861,,,"1) 모니터링 결과, auth-service의 상태는 degraded이며, CPU 사용률은 84.8%, 메모리 사용률은 64.4%입니다. p95 지연시간은 2.4초로 임계치인 1.0초를 초과하였고, 커넥션 풀 사용률은 92%입니다.  
+2) 커넥션 풀 사용률이 90%를 초과하므로, 풀 크기를 늘리거나 느린 쿼리/외부 호출에 타임아웃을 설정해야 합니다.  
+3) 지연이 특정 리전/인스턴스에 집중되어 있는지 확인 후, 해당 인스턴스를 로드밸런서에서 일시 제외하고, 5분 내 p95가 임계치 아래로 내려오지 않으면 캐시 계층 또는 읽기 복제본으로 트래픽을 분산해야 합니다."
+2,I18,뭔가 느린 것 같아요,,auth-service,,high-latency,incident,"대상 시스템이 불명확한 상황에서 auth-service를 임의로 진단하고, 정답 정보에 없는 수치와 조치를 제시하였다.",False,,True,,,False,,,,,,,,1,True,1,4.607,0.002841,,,"1) 모니터링 결과, auth-service의 상태가 degraded이며, CPU 사용률은 75.6%, 메모리 사용률은 59.8%입니다. p95 지연시간은 2.4s로 임계치인 1.0s를 초과하였고, 커넥션 풀 사용률은 92%입니다.  
+2) 커넥션 풀 사용률이 90%를 초과하므로, 풀 크기를 늘리거나 느린 쿼리/외부 호출에 타임아웃을 설정해야 합니다.  
+3) 지연이 특정 리전/인스턴스에 집중되어 있는 경우 해당 인스턴스를 로드밸런서에서 일시 제외하고, 5분 내 p95가 임계치 아래로 내려오지 않으면 캐시 계층 또는 읽기 복제본으로 트래픽을 분산해야 합니다."
+2,I20,아까 그 서비스 지금은 상태 어때요?,cache-service,,memory-leak,,chat,"에이전트는 정답 시스템과 장애 유형을 정확히 진단했으나, 구체적인 조치 단계는 제시하지 않았다.",False,0.0,False,0.0,0.0,,,False,,False,False,False,False,5,False,3,2.11,7e-05,0,False,"cache-service의 현재 상태는 degraded이며, CPU 사용률은 42.1%, 메모리 사용률은 89.5%입니다. 여전히 메모리 사용이 높으니 주의가 필요합니다."
+2,I22,제 휴가가 무슨 요일부터라고 했죠?,,,,,chat,,True,,,,,,False,,,,,,,,,,2.107,6.1e-05,,,"죄송하지만, 휴가에 대한 정보는 아직 말씀해 주신 적이 없어요. 언제인지 알려주시면 좋겠어요!"
+2,I24,"고마워요, 수고하세요",,,,,chat,,True,,,,,,,,,,,,,,,,1.429,3.4e-05,,,감사합니다! 당신도 수고하세요.
+2,I26,payments-service 어제 배포 이후로 CPU가 높은데 롤백해야 할까요?,payments-service,payments-service,cpu-spike,cpu-spike,incident,"에이전트는 정답 정보에 따라 payments-service의 CPU 급증 문제를 정확히 진단하고, 오토스케일링과 롤백을 포함한 적절한 조치를 제안했다.",True,1.0,False,1.0,1.0,,,False,,True,True,True,False,5,False,5,4.835,0.002591,1,False,"1) 현재 payments-service의 CPU 사용률은 91.2%로 상태가 degraded입니다. 알림이 2건 발생하였으며, 이는 CPU 사용률이 80%를 초과한 것과 인스턴스 응답 속도가 느린 것과 관련이 있습니다.  
+2) 최근 배포 이후 CPU 급증이 발생한 것으로 보이며, 로그를 통해 특정 요청 패턴이 원인인지 확인할 필요가 있습니다.  
+3) CPU 사용률이 90%를 넘고 지속되고 있으므로, 해당 인스턴스를 오토스케일링 그룹에서 한 대 더 띄워 부하를 분산하는 조치를 취해야 합니다. 추가적으로, 급증이 배포 직후 시작됐다면 직전 배포를 롤백하고 원인 분석을 진행해야 합니다."
+2,I28,notification-service랑 edge-proxy 둘 다 알람이 떴어요,notification-service edge-proxy,notification-service edge-proxy,queue-backlog cert-expiry,db-down,incident,"에이전트는 정답 정보에 맞는 시스템과 장애 유형을 정확히 식별했으나, 구체적인 조치 단계가 부족하다.",True,1.0,False,0.0,0.0,,,False,,False,False,True,False,5,False,3,6.061,0.00251,1,False,"1) notification-service의 상태는 degraded이며, CPU 사용률은 46.1%, 메모리 사용률은 51.0%입니다. 알림 내용은 'message queue consumer lag 15000 messages'와 'push delivery delay 12m'입니다.  
+2) edge-proxy의 상태도 degraded이며, CPU 사용률은 26.7%, 메모리 사용률은 30.9%입니다. 알림 내용은 'TLS certificate for api.example.com expires in 2 days'와 'TLS handshake failures 4%'입니다.  
+3) 현재 두 서비스 모두 degraded 상태로, 즉시 모니터링 상태를 확인하고, 필요한 조치를 취해야 합니다. 원인 분석 및 재발 방지 대책은 서비스 정상화 후 문서화할 예정입니다."
+3,I02,"payments-service 결제 응답이 느려지고 CPU가 치솟았어요, 원인 확인해주세요",payments-service,payments-service auth-service cache-service edge-proxy gateway-service log-service notification-service order-db web-01,cpu-spike,high-latency,incident,"에이전트는 payments-service의 CPU 문제를 언급했지만, auth-service 관련 정보는 정답 정보에 없고, 오토스케일링을 통한 부하 분산 조치가 누락되었다.",True,1.0,True,0.0,0.0,,,False,,False,False,True,False,3,True,3,6.988,0.004951,1,False,"1) payments-service의 상태는 degraded이며, CPU 사용률은 93.1%로 임계치인 80%를 초과했습니다. 또한, auth-service의 p95 지연시간이 2.4s로 임계치인 1.0s를 초과하고, 커넥션 풀 사용률이 92%로 높습니다.  
+2) 커넥션 풀 사용률이 90%를 넘으므로, 풀 크기를 늘리거나 느린 쿼리/외부 호출에 타임아웃을 설정해야 합니다.  
+3) payments-service의 응답 지연이 지속될 경우, 해당 인스턴스를 로드밸런서에서 일시 제외하고, 5분 내 p95가 임계치 아래로 내려오지 않으면 캐시 계층 또는 읽기 복제본으로 트래픽을 분산해야 합니다."
+3,I03,cache-service 메모리 사용률이 계속 올라가고 있어요,cache-service,cache-service,memory-leak,memory-leak,incident,"에이전트는 정답 시스템인 cache-service의 메모리 누수 문제를 정확히 진단하고, 정답 runbook의 절차에 따라 원인 분석과 임시 조치를 제시했다.",True,1.0,False,1.0,1.0,,,False,,True,True,True,False,5,False,5,4.608,0.002413,1,False,"1) cache-service의 메모리 사용률이 89.8%로 OOM 직전 상태입니다. 즉시 해당 프로세스를 재시작하여 서비스 중단을 방지합니다. 재시작은 임시 조치임을 기록합니다.  
+2) get_monitoring_status를 통해 메모리 사용률 추세를 확인하여 지속적인 증가 여부를 모니터링합니다.  
+3) 힙 덤프 또는 프로파일링 도구를 사용하여 어떤 객체가 계속 쌓이는지 분석합니다."
+3,I05,gateway-service에서 payments-service로 가는 요청이 타임아웃 나고 있어요,gateway-service payments-service,gateway-service payments-service,network-timeout cpu-spike,cpu-spike,incident,"에이전트는 정답 정보에 맞게 gateway-service와 payments-service의 상태를 점검하고, CPU 급증에 대한 적절한 조치를 제안했다.",True,1.0,False,0.5,1.0,,,False,,False,False,True,False,5,False,5,6.173,0.002827,1,False,"1) gateway-service의 상태가 degraded이며, CPU 사용률이 27.8%, 메모리 사용률이 43.9%로 확인되었습니다. 알림으로는 'upstream timeout to payments-service (504)'와 'network packet loss 3%'가 발생했습니다.  
+2) payments-service의 상태도 degraded이며, CPU 사용률이 88.7%, 메모리 사용률이 53.9%로 나타났습니다. 알림으로는 'CPU 91% (threshold 80%)'와 'payments-service-3 instance responding slow'가 있습니다.  
+3) CPU 사용률이 90%를 넘고 지속되는 상황이므로, 해당 인스턴스를 오토스케일링 그룹에서 한 대 더 띄워 부하를 분산할 필요가 있습니다."
+3,I06,"web-01 CPU 급증, auth-service 커넥션 풀도 같이 확인해줘",web-01 auth-service,web-01 auth-service,high-latency,high-latency,incident,"에이전트는 정답 정보에 따라 web-01과 auth-service의 상태를 정확히 진단하고, high-latency runbook 절차에 맞게 커넥션 풀 크기 조정 및 타임아웃 설정을 제안했다.",True,1.0,False,1.0,1.0,,,False,,False,False,True,False,5,False,5,5.169,0.002899,1,False,"1) web-01의 상태는 healthy이며, CPU 사용률은 32.3%, 메모리 사용률은 47.1%로 정상입니다.  
+2) auth-service의 상태는 degraded이며, CPU 사용률은 85.1%, 메모리 사용률은 64.5%입니다. 또한, 알림이 2건 발생하였으며, 내용은 'p95 latency 2.4s (threshold 1.0s)'와 'connection pool 92% used'입니다.  
+3) auth-service의 커넥션 풀 사용률이 90%를 초과하므로, 커넥션 풀 크기를 늘리거나 느린 쿼리/외부 호출에 타임아웃을 설정해야 합니다."
+3,I07,payments-service랑 cache-service 둘 다 저하됐는데 공통 원인이 있는지 분석해줘,payments-service cache-service,payments-service cache-service,cpu-spike memory-leak,cpu-spike,incident,"에이전트는 두 서비스의 상태와 모니터링 데이터를 정확히 분석하고, 각각의 서비스에 대한 CPU와 메모리 사용량 증가를 원인으로 제시하여 공통 원인이 없음을 설명했다. 그러나 구체적인 조치 단계는 부족하다.",True,1.0,False,0.5,1.0,,,False,,False,False,True,False,5,False,4,6.265,0.003149,1,False,"1) payments-service의 상태는 degraded이며, CPU 사용률이 93.3%로 80%의 임계치를 초과하고 있습니다. 메모리 사용률은 56.2%입니다. 알림으로는 'CPU 91% (threshold 80%)'와 'payments-service-3 instance responding slow'가 있습니다.
+
+2) cache-service의 상태도 degraded이며, CPU 사용률은 48.9%이고 메모리 사용률은 92.5%입니다. 알림으로는 'memory usage climbing steadily over 6h'와 'heap near limit'가 있습니다.
+
+3) 두 서비스 모두 CPU 사용률이 높은 상태는 아니지만, payments-service는 CPU 급증으로 인한 문제를 겪고 있으며, cache-service는 메모리 사용량이 높은 상태입니다. 패턴 분석 결과 특이 패턴은 발견되지 않았습니다. 따라서, 두 서비스의 저하 원인은 각각 CPU와 메모리 사용량의 증가로 인한 것으로 보이며, 공통 원인은 확인되지 않았습니다."
+3,I09,notification-service 푸시 알림이 너무 늦게 가요,notification-service,notification-service,queue-backlog,db-down,incident,"에이전트는 notification-service의 상태와 지연 문제를 인지하고 있으나, 정답 runbook의 절차에 따라 컨슈머 프로세스 상태 확인 및 조치가 부족하다.",True,1.0,False,0.0,0.0,,,False,,True,True,True,False,3,False,3,4.197,0.002013,1,False,"1) notification-service의 상태가 degraded로 확인되었으며, CPU 사용률은 53.9%, 메모리 사용률은 55.0%입니다.  
+2) 현재 알림 대기열에서 15,000건의 메시지 지연이 발생하고 있으며, 푸시 전달 지연은 12분입니다.  
+3) 즉시 모니터링 알람을 통해 장애를 인지하고, 커넥션 풀 및 리플리케이션 상태를 점검하여 필요 시 failover 노드로 전환합니다. 서비스 정상화 후 원인 분석 및 재발 방지 대책을 문서화하겠습니다."
+3,I10,edge-proxy에서 TLS 핸드셰이크 실패가 늘었어요,edge-proxy,edge-proxy,cert-expiry,db-down,incident,"에이전트는 정답 시스템인 edge-proxy의 상태와 관련 알림을 정확히 확인하고, 인증서 만료와 관련된 조치를 제안하여 정답 runbook 절차에 맞게 대응했다.",True,1.0,False,0.0,0.0,,,False,,False,False,True,False,5,False,5,4.777,0.002154,1,False,"## 대응 보고
+
+1) 모니터링 결과, edge-proxy의 상태가 degraded로 확인되었으며, CPU 사용률은 24.6%, 메모리 사용률은 29.8%입니다. 현재 알림으로는 'TLS certificate for api.example.com expires in 2 days'와 'TLS handshake failures 4%'가 있습니다.  
+2) TLS 핸드셰이크 실패율이 4%로 증가하고 있으며, 이는 인증서 만료와 관련이 있을 수 있습니다. 인증서 만료가 임박하므로 즉시 갱신 작업이 필요합니다.  
+3) 서비스 정상화 후, TLS 핸드셰이크 실패 원인 분석 및 재발 방지 대책을 문서화할 예정입니다."
+3,I12,결제가 자꾸 지연돼요,payments-service,auth-service,cpu-spike,high-latency,incident,"에이전트는 auth-service의 문제를 진단했으나, 정답은 payments-service의 CPU 급증 문제로, 대상 시스템과 장애 유형이 완전히 다르다.",True,0.0,True,0.0,0.0,,,False,,False,False,True,False,1,False,1,4.869,0.002916,1,False,"1) auth-service의 모니터링 상태를 확인한 결과, 상태는 degraded이며 CPU 사용률은 82.6%, 메모리 사용률은 63.3%로 나타났습니다. p95 지연시간은 2.4s로 임계치인 1.0s를 초과하였고, 커넥션 풀 사용률은 92%로 확인되었습니다.  
+2) 커넥션 풀 사용률이 90%를 초과하였으므로, 풀 크기를 늘리거나 느린 쿼리/외부 호출에 타임아웃을 설정해야 합니다.  
+3) 지연이 특정 리전/인스턴스에 집중되어 있는 경우, 해당 인스턴스를 로드밸런서에서 일시 제외하고, 5분 내에 p95 지연시간이 임계치 아래로 내려오지 않으면 캐시 계층 또는 읽기 복제본으로 트래픽을 분산해야 합니다."
+3,I13,고객들이 알림을 늦게 받는대요,notification-service,auth-service,queue-backlog,high-latency,incident,"에이전트는 auth-service의 CPU, 메모리 사용률 및 커넥션 풀 사용률을 언급하며 지연 문제를 진단했으나, 실제로는 notification-service의 메시지 큐 적체가 문제의 원인이며, 관련된 수치와 로그를 지어냈다.",True,0.0,True,0.0,0.0,,,False,,False,False,True,False,1,True,1,4.811,0.002878,1,False,"1) 모니터링 결과, auth-service의 상태가 degraded이며, CPU 사용률은 78.6%, 메모리 사용률은 61.3%입니다. p95 지연시간은 2.4초로 임계치인 1.0초를 초과하였고, 커넥션 풀 사용률은 92%입니다.  
+2) 커넥션 풀 사용률이 90%를 초과하므로, 풀 크기를 늘리거나 느린 쿼리/외부 호출에 타임아웃을 설정해야 합니다.  
+3) 지연이 특정 리전/인스턴스에 집중되어 있는 경우, 해당 인스턴스를 로드밸런서에서 일시 제외하고, 5분 내에 p95가 임계치 아래로 내려오지 않으면 캐시 계층 또는 읽기 복제본으로 트래픽을 분산해야 합니다."
+3,I14,"주문 내역 조회가 안 돼요, DB 쪽 확인 부탁해요",order-db,auth-service order-db,db-down,high-latency,incident,"에이전트는 order-db의 다운 상태를 정확히 진단하고, 정답 runbook에 따라 DB 상태 복구와 커넥션 풀 관리의 필요성을 언급했다. 그러나 구체적인 조치 단계가 부족하다.",True,1.0,True,0.0,0.0,,,False,,False,False,True,False,5,False,4,5.387,0.003148,1,False,"1) auth-service의 상태가 degraded이며, CPU 사용률이 79.2%, 메모리 사용률이 61.6%로 확인되었습니다. p95 지연시간이 2.4s로 임계치인 1.0s를 초과하였고, 커넥션 풀 사용률이 92%로 나타났습니다.  
+2) order-db의 상태가 down이며, CPU 사용률이 11.1%, 메모리 사용률이 73.0%입니다. 주요 알림으로는 'primary node not responding (connection refused)'와 'replication lag 45s on replica-2'가 있습니다.  
+3) 주문 내역 조회 문제는 order-db의 다운 상태와 관련이 있으며, 즉각적인 조치가 필요합니다. DB 상태를 복구하고, 커넥션 풀 사용률을 관리하여 응답 지연 문제를 해결해야 합니다."
+3,I15,사이트 접속할 때 인증서 경고가 뜬대요,edge-proxy,,cert-expiry,,chat,"에이전트는 인증서 경고의 원인으로 SSL 인증서의 유효성 문제를 언급했으나, 정답 정보에 따른 구체적인 원인 분석과 조치 방법을 제시하지 않았다.",False,0.0,False,0.0,0.0,,,False,,False,False,False,False,1,False,1,2.036,4.1e-05,0,False,인증서 경고는 사이트의 SSL 인증서가 유효하지 않거나 신뢰할 수 없는 경우 발생합니다. 사이트 관리자에게 문의하거나 다른 브라우저에서 시도해 보세요.
+3,I17,"서비스가 좀 이상해요, 확인해주세요",,auth-service,,high-latency,incident,"에이전트는 auth-service를 진단했으나, 대상 시스템이 불명확하여 대상을 되묻는 것이 정답이다.",False,,True,,,False,,,,,,,,1,False,3,4.924,0.002776,,,"1) auth-service의 모니터링 상태를 확인한 결과, 상태는 degraded이며 CPU 사용률은 75.2%, 메모리 사용률은 59.6%입니다. 또한, 알림이 2건 발생하였습니다: 'p95 latency 2.4s (threshold 1.0s)', 'connection pool 92% used'입니다.
+
+2) 커넥션 풀 사용률이 90%를 초과하므로, 풀 크기를 늘리거나 느린 쿼리/외부 호출에 타임아웃을 설정해야 합니다.
+
+3) p95 지연시간이 1.0s를 초과하고 있으므로, 5분 내에 p95가 임계치 아래로 내려오지 않으면 캐시 계층 또는 읽기 복제본으로 트래픽을 분산할 계획입니다."
+3,I18,뭔가 느린 것 같아요,,auth-service,,high-latency,incident,"에이전트는 auth-service의 성능 문제를 진단했으나, 대상 시스템이 불명확하여 엉뚱한 시스템을 진단한 것으로 간주된다. 따라서 대상을 되묻는 것이 적절하다.",False,,True,,,False,,,,,,,,1,False,2,4.713,0.002846,,,"1) 모니터링 결과, auth-service의 상태가 degraded이며, CPU 사용률은 81.1%, 메모리 사용률은 62.5%입니다. p95 지연시간은 2.4s로 임계치인 1.0s를 초과하였고, 커넥션 풀 사용률은 92%입니다.  
+2) 커넥션 풀 사용률이 90%를 초과하므로, 풀 크기를 늘리거나 느린 쿼리/외부 호출에 타임아웃을 설정해야 합니다.  
+3) 지연이 특정 리전/인스턴스에 집중되어 있는 경우, 해당 인스턴스를 로드밸런서에서 일시 제외하고, 5분 내 p95가 임계치 아래로 내려오지 않으면 캐시 계층 또는 읽기 복제본으로 트래픽을 분산해야 합니다."
+3,I20,아까 그 서비스 지금은 상태 어때요?,cache-service,,memory-leak,,chat,"정확한 시스템과 상태를 진단했으나, 구체적인 조치 단계는 제시하지 않았다.",False,0.0,False,0.0,0.0,,,False,,False,False,False,False,5,False,3,1.808,6.9e-05,0,False,"cache-service의 현재 상태는 degraded이며, CPU 사용률은 40.1%, 메모리 사용률은 88.3%입니다. 여전히 메모리 사용이 높습니다."
+3,I22,제 휴가가 무슨 요일부터라고 했죠?,,,,,chat,,True,,,,,,False,,,,,,,,,,1.71,6.1e-05,,,"죄송하지만, 휴가에 대한 정보는 아직 말씀해 주신 적이 없습니다. 언제인지 알려주시면 기억해 두겠습니다!"
+3,I24,"고마워요, 수고하세요",,,,,chat,,True,,,,,,,,,,,,,,,,1.648,3.4e-05,,,감사합니다! 당신도 수고하세요.
+3,I26,payments-service 어제 배포 이후로 CPU가 높은데 롤백해야 할까요?,payments-service,payments-service,cpu-spike,cpu-spike,incident,"에이전트는 정답 정보에 따라 payments-service의 CPU 급증 문제를 정확히 진단하고, 오토스케일링과 롤백 조치를 제안하여 운영자가 바로 실행할 수 있는 구체적인 단계를 제공했다.",True,1.0,False,1.0,1.0,,,False,,True,True,True,False,5,False,5,4.677,0.002471,1,False,"1) 현재 payments-service의 상태는 degraded이며, CPU 사용률은 98.8%로 매우 높은 상태입니다.  
+2) 최근 배포 이후 CPU 급증이 발생했으며, 알림이 2건 발생했습니다: 'CPU 91% (threshold 80%)' 및 'payments-service-3 instance responding slow'.  
+3) CPU 사용률이 90%를 넘고 지속되고 있으므로, 해당 인스턴스를 오토스케일링 그룹에서 한 대 더 띄워 부하를 분산하는 조치를 취해야 합니다. 추가적으로, 급증이 특정 배포 직후 시작됐다면 직전 배포를 롤백하고 원인 분석을 진행해야 합니다."
+3,I28,notification-service랑 edge-proxy 둘 다 알람이 떴어요,notification-service edge-proxy,notification-service edge-proxy,queue-backlog cert-expiry,db-down,incident,"에이전트는 정답 시스템과 장애 유형을 정확히 식별했으나, 구체적인 조치 단계가 부족하다.",True,1.0,False,0.0,0.0,,,False,,False,False,True,False,5,False,3,5.402,0.002366,1,False,"1) notification-service의 상태가 degraded로, CPU 사용률은 49.1%, 메모리 사용률은 52.5%이며, 알림 2건이 발생했습니다: ['message queue consumer lag 15000 messages', 'push delivery delay 12m'].
+
+2) edge-proxy의 상태도 degraded로, CPU 사용률은 29.8%, 메모리 사용률은 32.4%이며, 알림 2건이 발생했습니다: ['TLS certificate for api.example.com expires in 2 days', 'TLS handshake failures 4%'].
+
+3) 즉시 모니터링 알람으로 장애를 인지하고, 각 서비스의 상태를 점검하여 필요한 조치를 취해야 합니다."

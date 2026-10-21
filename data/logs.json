@@ -1,0 +1,46 @@
+{
+  "auth-service": [
+    "2026-10-20T09:41:12 ERROR HikariPool-1 - Connection is not available, request timed out after 3000ms",
+    "2026-10-20T09:41:15 WARN slow query on sessions table took 2.1s",
+    "2026-10-20T09:42:03 WARN login API p95 above threshold for 10 minutes"
+  ],
+  "web-01": [
+    "2026-10-20T09:40:00 INFO health check ok",
+    "2026-10-20T09:45:00 INFO health check ok"
+  ],
+  "payments-service": [
+    "2026-10-20T09:12:40 INFO deploy v2.14.0 completed",
+    "2026-10-20T09:15:02 WARN batch job settlement-sync started twice (duplicate schedule)",
+    "2026-10-20T09:31:27 WARN request queue length 340 on payments-service-3"
+  ],
+  "cache-service": [
+    "2026-10-20T08:55:10 WARN used_memory 89% of maxmemory",
+    "2026-10-20T09:20:44 WARN maxmemory-policy noeviction - keys are not being evicted",
+    "2026-10-20T09:38:01 INFO client connections 1820 (steadily increasing)"
+  ],
+  "gateway-service": [
+    "2026-10-20T09:33:18 ERROR upstream timed out (110) while reading response header from payments-service",
+    "2026-10-20T09:33:20 WARN retry storm detected: each request retried 3 times",
+    "2026-10-20T09:34:02 WARN packet loss 3% on link to zone-b"
+  ],
+  "log-service": [
+    "2026-10-20T09:10:05 ERROR write failed: No space left on device (/var/log)",
+    "2026-10-20T09:10:30 WARN debug log level enabled on payments-service since 2026-10-18",
+    "2026-10-20T09:11:00 WARN logrotate skipped: rotation interval 7 days"
+  ],
+  "order-db": [
+    "2026-10-20T09:25:11 FATAL could not connect to primary: connection refused",
+    "2026-10-20T09:25:40 WARN replica-2 replication lag 45s",
+    "2026-10-20T09:26:02 INFO replica-1 healthy, replication lag 0s"
+  ],
+  "notification-service": [
+    "2026-10-20T09:02:44 WARN consumer group push-workers lag 15000 messages",
+    "2026-10-20T09:05:10 ERROR worker pod push-worker-3 CrashLoopBackOff (2/5 workers running)",
+    "2026-10-20T09:06:00 WARN average push delivery delay 12m"
+  ],
+  "edge-proxy": [
+    "2026-10-20T08:00:00 WARN certificate api.example.com notAfter=2026-10-22, auto-renew failed (ACME challenge timeout)",
+    "2026-10-20T09:30:12 ERROR TLS handshake failed: certificate verify failed",
+    "2026-10-20T09:30:40 WARN handshake failure rate 4%"
+  ]
+}

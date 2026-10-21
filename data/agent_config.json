@@ -1,0 +1,17 @@
+{
+  "_comment": "[개선5 하드코딩 제거] Base 코드에 박혀 있던 값들을 설정으로 분리했다.",
+  "prompt_name": "incident_analysis_prompt",
+  "runbook_template_name": "get_incident_runbook",
+  "runbook_min_score": {
+    "fake": 0.05,
+    "ollama": 0.35,
+    "openai": 0.25
+  },
+  "max_runbooks": 3,
+  "validate_max_attempts": 3,
+  "validate_min_length": 30,
+  "memory_max_messages": 10,
+  "memory_keep_recent": 6,
+  "retrieval_mode": "vector",
+  "_comment_retrieval": "vector: 실측(OpenAI 임베딩) 8/8, hybrid 5/8 — 알림·로그는 영어, runbook은 한국어라 키워드(bm25)가 방해됨"
+}

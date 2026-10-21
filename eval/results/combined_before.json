@@ -1,0 +1,25 @@
+{
+  "label": "before",
+  "files": [
+    "eval/results/final2_before_20261020-1544.csv",
+    "eval/results/holdout_before_20261021-1449.csv"
+  ],
+  "route_ok": 0.7544,
+  "systems_recall": 0.6,
+  "wrong_system": 0.5686,
+  "runbook_recall": 0.2011,
+  "runbook_precision": 0.2299,
+  "clarify_ok": 0.0,
+  "memory_ok": 0.0,
+  "unsupported_number": 0.0,
+  "has_risky": 0.1111,
+  "risky_unapproved": 0.1111,
+  "approval_requested": 0.0,
+  "judge_grounding": 2.6667,
+  "judge_hallucination": 0.3627,
+  "judge_helpfulness": 2.6373,
+  "cost_usd": 0.0022,
+  "latency_s": 4.3716,
+  "latency_p50": 4.87,
+  "questions": 38
+}

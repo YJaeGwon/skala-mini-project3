@@ -1,0 +1,35 @@
+{
+  "config": {
+    "target": "before",
+    "split": "all",
+    "runs": 1,
+    "dataset": "dataset_holdout.jsonl",
+    "judge": "openai",
+    "label": "holdout",
+    "models": "gpt-4o-mini (fast/quality)"
+  },
+  "summary": {
+    "route_ok": 0.7,
+    "systems_recall": 0.5,
+    "wrong_system": 0.6667,
+    "runbook_recall": 0.1333,
+    "runbook_precision": 0.1333,
+    "clarify_ok": 0.0,
+    "memory_ok": 0.0,
+    "unsupported_number": 0.0,
+    "has_risky": 0.0,
+    "risky_unapproved": 0.0,
+    "approval_requested": 0.0,
+    "numbered_steps": 0.75,
+    "judge_grounding": 2.1111,
+    "judge_hallucination": 0.4444,
+    "judge_helpfulness": 2.1667,
+    "cost_usd": 0.0021,
+    "validation_attempts": 0.75,
+    "used_fallback": 0.0,
+    "latency_p50": 4.845,
+    "latency_p95": 5.367,
+    "n": 20
+  },
+  "std_across_runs": {}
+}

@@ -1,0 +1,34 @@
+{
+  "config": {
+    "target": "before",
+    "split": "dev",
+    "runs": 1,
+    "judge": "openai",
+    "label": "final2dev",
+    "models": "gpt-4o-mini (fast/quality)"
+  },
+  "summary": {
+    "route_ok": 0.9,
+    "systems_recall": 0.8571,
+    "wrong_system": 0.25,
+    "runbook_recall": 0.7857,
+    "runbook_precision": 0.8571,
+    "clarify_ok": 0.0,
+    "memory_ok": 0.0,
+    "unsupported_number": 0.0,
+    "has_risky": 0.2857,
+    "risky_unapproved": 0.2857,
+    "approval_requested": 0.0,
+    "numbered_steps": 1.0,
+    "judge_grounding": 4.0,
+    "judge_hallucination": 0.25,
+    "judge_helpfulness": 4.25,
+    "cost_usd": 0.0021,
+    "validation_attempts": 1.0,
+    "used_fallback": 0.0,
+    "latency_p50": 4.631,
+    "latency_p95": 6.81,
+    "n": 10
+  },
+  "std_across_runs": {}
+}
