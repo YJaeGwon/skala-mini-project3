@@ -6,7 +6,7 @@
 - before: 원본 Base 코드 스냅샷(eval/before_snapshot.py) + 같은 데이터
 - after : 이 프로젝트 (과제1 개선판)
 두 서버 모두 LLM_BACKEND=openai, fast/quality 모두 gpt-4o-mini(비용 절감·공정 비교).
-After에서 운영자 승인이 걸리면 approval_requested=True로 기록하고 '승인'으로 이어 간다.
+After에서 사용자 승인이 걸리면 approval_requested=True로 기록하고 '승인'으로 이어 간다.
 """
 import argparse
 import asyncio

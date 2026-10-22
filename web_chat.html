@@ -105,7 +105,7 @@
       </div>
 
       <div v-else-if="item.kind === 'approval'" class="approval">
-        <h4>🧑‍💻 운영자 승인 필요 — 서비스 중단 위험 조치 포함</h4>
+        <h4>🧑‍💻 사용자 승인 필요 — 서비스 중단 위험 조치 포함</h4>
         <div>대상: {{ (item.data.targets || []).join(', ') }}</div>
         <ul><li v-for="(a, i) in item.data.risky_actions" :key="i">{{ a }}</li></ul>
         <div v-if="!item.resolved" class="actions">
@@ -152,8 +152,8 @@ const STEP_LABELS = {
   AnalysisCompleted: () => '여러 시스템 비교 분석 완료',
   DraftWritten: e => `답변 초안 작성 (시도 ${e.attempt})`,
   Validation: e => e.verdict === '합격' ? '사실 검증 통과' : `검증 반려 → 다시 작성 (${(e.failures || []).join(' / ')})`,
-  RiskChecked: e => e.risky ? `위험 조치 ${e.risky}건 발견 → 운영자 승인 요청` : '위험 조치 없음',
-  ApprovalResolved: e => e.approved ? '운영자 승인됨' : '운영자 거절 → 위험 조치 빼고 다시 작성',
+  RiskChecked: e => e.risky ? `위험 조치 ${e.risky}건 발견 → 사용자 승인 요청` : '위험 조치 없음',
+  ApprovalResolved: e => e.approved ? '사용자 승인됨' : '사용자 거절 → 위험 조치 빼고 다시 작성',
   RiskyActionsRemoved: e => `남은 위험 조치 ${e.count}건 제거`,
   ValidationFallback: () => '검증 3회 실패 → 수집값 기반 안전 답변으로 대체',
   Finalize: e => e.pipeline === 'clarify' ? '대상 확인 요청' : '최종 답변 완성',

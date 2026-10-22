@@ -48,7 +48,7 @@ async def proxy_chat(req: Request):
 
 @app.post("/approve")
 async def proxy_approve(req: Request):
-    """[추가1] 운영자 승인·거절을 백엔드로 중계."""
+    """[추가1] 사용자 승인·거절을 백엔드로 중계."""
     body = await req.body()
     async with httpx.AsyncClient(timeout=300.0) as client:
         r = await client.post(f"{BACKEND}/approve", content=body,

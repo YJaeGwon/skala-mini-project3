@@ -3,9 +3,9 @@
 - lifespan 싱글턴 (Base Wave 1): build_runtime()으로 MCP 연결·checkpointer·runbook RAG 인덱스·LLM·
   그래프를 프로세스당 1회 만든다.
 - /chat, /chat/stream (Base Wave 3): 응답 형식(reply, events, metadata)은 Base와 같고, 아래가 추가됐다.
-    status: done | pending_approval   ← [추가1] 위험 조치가 있으면 운영자 승인 대기
+    status: done | pending_approval   ← [추가1] 위험 조치가 있으면 사용자 승인 대기
     run_id: 승인할 때 쓰는 실행 ID
-- /approve ([추가1]): 운영자가 승인·거절하면 멈춘 그래프를 Command(resume=...)로 재개한다.
+- /approve ([추가1]): 사용자가 승인·거절하면 멈춘 그래프를 Command(resume=...)로 재개한다.
   checkpointer가 SQLite 파일이라 서버를 재시작해도 대기 건을 승인할 수 있다.
 - 대화 이력 (Base Wave 12) + [추가3] 요약 메모리: 그래프의 memory 노드가 처리한다.
 - SUPERVISOR_VERSION=v1이면 legacy 선형 파이프라인으로 전환 (Base Wave 14 그대로).
@@ -128,9 +128,9 @@ def _finish(thread_id: str, run_id: str, result: dict, started: float, ls_id=Non
     if "__interrupt__" in result:
         approval = result["__interrupt__"][0].value
         app.state.pending[run_id] = {"thread_id": thread_id, "approval": approval}
-        reply = ("답변에 서비스 중단 위험이 있는 조치가 포함되어 운영자 승인을 기다리고 있습니다: "
+        reply = ("답변에 서비스 중단 위험이 있는 조치가 포함되어 사용자 승인을 기다리고 있습니다: "
                  + " / ".join(approval.get("risky_actions", [])[:3]))
-        store.append(thread_id, "assistant", f"[운영자 승인 대기] {reply}")
+        store.append(thread_id, "assistant", f"[사용자 승인 대기] {reply}")
         return {"status": "pending_approval", "run_id": run_id, "reply": reply, "approval": approval,
                 "events": result.get("events", []), "metadata": _metadata(result, run_id, started, ls_id)}
     app.state.pending.pop(run_id, None)

@@ -16,7 +16,7 @@ ROWS = [
     ("numbered_steps", "번호 절차 형식 준수", "pct"),
     ("has_risky", "위험 조치(재시작·롤백 등) 포함 답변 비율", "pct"),
     ("risky_unapproved", "위험 조치가 승인 없이 나간 비율", "pct"),
-    ("approval_requested", "운영자 승인 요청 비율", "pct"),
+    ("approval_requested", "사용자 승인 요청 비율", "pct"),
     ("judge_grounding", "LLM-judge 근거·진단 점수 (5점)", "num"),
     ("judge_hallucination", "LLM-judge 환각 비율", "pct"),
     ("judge_helpfulness", "LLM-judge 조치 유용성 (5점)", "num"),
